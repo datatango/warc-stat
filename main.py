@@ -34,6 +34,11 @@ def main():
                 if status:
                     stats['http_status_codes'][status] += 1
 
+                content_type = record.http_headers.get_header('Content-Type')
+                if content_type:
+                    content_type = content_type.split(';')[0].strip()
+                    stats['mime_types'][content_type] += 1
+
     
     # convert defaultdict objects back to Python dicts
     stats['record_types'] = dict(stats['record_types'])
