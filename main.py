@@ -5,9 +5,9 @@ import json
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Process WARC file')
+    parser = argparse.ArgumentParser(description='Get WARC info & stats')
     parser.add_argument('warc_file', help='Path to the WARC file')
-    parser.add_argument('-o', '--output', help='Output file path')
+    parser.add_argument('-o', '--output', help='Output JSON file path')
 
     args = parser.parse_args()
     warc_path = args.warc_file
