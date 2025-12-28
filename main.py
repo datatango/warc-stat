@@ -11,5 +11,9 @@ def main():
 
     print(f"Processing: {warc_path}")
 
+    with open(warc_path, "rb") as stream:
+        for record in ArchiveIterator(stream):
+            print(record.rec_type)
+
 if __name__ == "__main__":
     main()
