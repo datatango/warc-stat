@@ -29,6 +29,11 @@ def main():
 
             if record.length:
                 stats['total_bytes'] += record.length
+            if record.rec_type == 'response' and record.http_headers:
+                status = record.http_headers.get_statuscode()
+                if status:
+                    stats['http_status_codes'][status] += 1
+
     
     # convert defaultdict objects back to Python dicts
     stats['record_types'] = dict(stats['record_types'])
