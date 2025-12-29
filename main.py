@@ -1,4 +1,5 @@
 from collections import defaultdict
+from urllib.parse import urlparse
 from warcio.archiveiterator import ArchiveIterator
 import argparse
 import json
@@ -16,10 +17,11 @@ def main():
 
     stats = {
         'total_records': 0,
-        'record_types': defaultdict(int),
-        'mime_types': defaultdict(int),
+        'total_bytes': 0,
+        'hosts': defaultdict(int),
         'http_status_codes': defaultdict(int),
-        'total_bytes': 0
+        'mime_types': defaultdict(int),
+        'record_types': defaultdict(int)
     }
 
     with open(warc_path, "rb") as stream:
@@ -31,6 +33,11 @@ def main():
                 stats['total_bytes'] += record.length
             if record.rec_type == 'response' and record.http_headers:
                 status = record.http_headers.get_statuscode()
+                uri = record.rec_headers.get_header('WARC-Target-URI')
+                if uri:
+                    host = urlparse(uri).netloc
+                    if host:
+                        stats['hosts'][host] += 1
                 if status:
                     stats['http_status_codes'][status] += 1
 
@@ -44,6 +51,7 @@ def main():
     stats['record_types'] = dict(stats['record_types'])
     stats['mime_types'] = dict(stats['mime_types'])
     stats['http_status_codes'] = dict(stats['http_status_codes'])
+    stats['hosts'] = dict(stats['hosts'])
     output = json.dumps(stats, indent=2)
 
     if args.output:
