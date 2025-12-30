@@ -18,6 +18,7 @@ def main():
     stats = {
         'total_records': 0,
         'total_bytes': 0,
+        'errors': [],
         'hosts': defaultdict(int),
         'http_status_codes': defaultdict(int),
         'mime_types': defaultdict(int),
@@ -40,6 +41,12 @@ def main():
                         stats['hosts'][host] += 1
                 if status:
                     stats['http_status_codes'][status] += 1
+
+                    if status != 200:
+                        stats['errors'].append({
+                            'url': uri,
+                            'status': status
+                        })
 
                 content_type = record.http_headers.get_header('Content-Type')
                 if content_type:
