@@ -2,10 +2,30 @@ from collections import defaultdict
 from urllib.parse import urlparse
 from warcio.archiveiterator import ArchiveIterator
 import argparse
+import os
 import json
+import logging
 
+
+def setup_logging():
+    # create log dir if needed
+    os.makedirs('logs', exist_ok=True)
+
+    # configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[
+            logging.FileHandler('logs/warcstat.log'),
+            logging.StreamHandler()
+        ]
+    )
+
+    return logging.getLogger(__name__)
 
 def main():
+    logger = setup_logging()
+
     parser = argparse.ArgumentParser(description='Get WARC info & stats')
     parser.add_argument('warc_file', help='Path to the WARC file')
     parser.add_argument('-o', '--output', help='Output JSON file path')
@@ -13,7 +33,7 @@ def main():
     args = parser.parse_args()
     warc_path = args.warc_file
 
-    print(f"Processing: {warc_path}")
+    logger.info(f"Processing: {warc_path}")
 
     stats = {
         'total_records': 0,
@@ -21,7 +41,7 @@ def main():
         'errors': [],
         'hosts': defaultdict(int),
         'http_status_codes': defaultdict(int),
-        'mime_types': defaultdict(int),
+        'mime_types': defaultdict(int), 
         'record_types': defaultdict(int)
     }
 
