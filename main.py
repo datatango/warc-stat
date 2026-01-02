@@ -72,7 +72,7 @@ def main():
                 if content_type:
                     content_type = content_type.split(';')[0].strip()
                     stats['mime_types'][content_type] += 1
-
+        
     
     # convert defaultdict objects back to Python dicts
     stats['record_types'] = dict(stats['record_types'])
@@ -82,8 +82,14 @@ def main():
     output = json.dumps(stats, indent=2)
 
     if args.output:
-        with open(args.output, 'w') as f:
+        output_path = args.output
+
+        if os.path.isdir(output_path):
+            output_path = os.path.join(output_path, "warcstat_output.json")
+
+        with open(output_path, 'w') as f:
             f.write(output)
+        logger.info(f"Output written to: {output_path}")
     else:
         print(output)
 
