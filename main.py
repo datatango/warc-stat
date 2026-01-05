@@ -94,7 +94,7 @@ def main():
             f.write(output) # write json output
         logger.info(f"Output written to: {output_path}")
     else:
-        print(output) # print to terminal if no output is defined
+        print(output) # print json output to terminal if no output is defined
 
 if __name__ == "__main__":
     main()
