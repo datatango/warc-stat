@@ -7,16 +7,17 @@ import json
 import logging
 
 
-def setup_logging():
-    # create log dir if needed
-    os.makedirs('logs', exist_ok=True)
+def setup_logging(log_dir='logs'):
+    # create dir if it does not exist
+    os.makedirs(log_dir, exist_ok=True)
 
     # configure logging
+    log_file = os.path.join(log_dir, 'warcstat.log')
     logging.basicConfig(
-        level=logging.INFO,
+        level = logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
-            logging.FileHandler('logs/warcstat.log'),
+            logging.FileHandler(log_file),
             logging.StreamHandler()
         ]
     )
@@ -24,13 +25,13 @@ def setup_logging():
     return logging.getLogger(__name__)
 
 def main():
-    logger = setup_logging()
-
     parser = argparse.ArgumentParser(description='Get WARC info & stats')
     parser.add_argument('warc_file', help='Path to the WARC file')
     parser.add_argument('-o', '--output', help='Output JSON file path')
+    parser.add_argument('--log-dir', default='logs', help='Log directory path')
 
     args = parser.parse_args()
+    logger = setup_logging(args.log_dir)
     warc_path = args.warc_file
 
     logger.info(f"Processing: {warc_path}")
