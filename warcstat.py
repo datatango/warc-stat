@@ -1,6 +1,7 @@
 from collections import defaultdict
 from urllib.parse import urlparse
 from warcio.archiveiterator import ArchiveIterator
+from warcio.exceptions import ArchiveLoadFailed
 import argparse
 import os
 import json
@@ -101,6 +102,10 @@ def main():
             stats = collect_stats(stream)
     except OSError as error:
         parser.error(f"can't open '{args.warc_file}': {error.strerror}")
+    except ArchiveLoadFailed:
+        # the raw message quotes the offending bytes, which is unreadable
+        # binary for anything that isn't a WARC at all (a zip, a PDF, ...)
+        parser.error(f"'{args.warc_file}' is not a WARC file, or is corrupt")
 
     if args.quiet: # swap the lists for their lengths
         stats['errors'] = len(stats['errors'])
