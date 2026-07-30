@@ -20,6 +20,7 @@ Or install it as a standalone command with `uv tool install .`.
 | `warc_file` | Path to the WARC (`.warc` or `.warc.gz`, both handled by warcio). Required. |
 | `-o`, `--output` | Output file path, or a directory (auto-names `warcstat_output.json`). Defaults to stdout. |
 | `--log-dir` | Log directory. Defaults to `./logs`. Always writes `warcstat.log` and mirrors to stderr. |
+| `-q`, `--quiet` | Replace the `errors` and `redirects` lists with their counts. |
 
 ## Output
 
@@ -31,7 +32,7 @@ Or install it as a standalone command with `uv tool install .`.
 | `redirects` | List of `{url, status}` for 3xx responses |
 | `hosts` | Request count per host |
 | `http_status_codes` | Count per status code |
-| `mime_types` | Count per MIME type |
+| `mime_types` | Count per MIME type, 2xx responses only (redirect stubs are labelled `text/html` but carry no content) |
 | `record_types` | Count per WARC record type |
 
 ## Tests

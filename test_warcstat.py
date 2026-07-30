@@ -29,8 +29,8 @@ def test_collect_stats():
     assert stats['record_types'] == {'response': 3}
     assert stats['http_status_codes'] == {'200': 2, '404': 1}
     assert stats['hosts'] == {'example.com': 2, 'other.org': 1}
-    # charset is stripped off the Content-Type
-    assert stats['mime_types'] == {'text/html': 2, 'image/png': 1}
+    # charset is stripped off the Content-Type, and the 404 is not counted
+    assert stats['mime_types'] == {'text/html': 1, 'image/png': 1}
     assert stats['errors'] == [{'url': 'http://example.com/missing', 'status': '404'}]
     assert stats['total_bytes'] > 0
 
@@ -51,6 +51,19 @@ def test_redirects_are_not_errors():
     ]
 
 
+def test_mime_types_ignore_non_2xx():
+    warc = build_warc([
+        ('http://example.com/ok', '200 OK', 'text/html'),
+        # a redirect stub is labelled text/html but holds no real content
+        ('http://example.com/old', '301 Moved Permanently', 'text/html'),
+        ('http://example.com/gone', '404 Not Found', 'text/html'),
+    ])
+    stats = collect_stats(warc)
+
+    assert stats['mime_types'] == {'text/html': 1}
+    assert stats['http_status_codes'] == {'200': 1, '301': 1, '404': 1}
+
+
 def test_malformed_status_is_skipped():
     warc = build_warc([('http://example.com/', 'BAD nonsense', 'text/html')])
     stats = collect_stats(warc)
@@ -63,5 +76,6 @@ def test_malformed_status_is_skipped():
 if __name__ == '__main__':
     test_collect_stats()
     test_redirects_are_not_errors()
+    test_mime_types_ignore_non_2xx()
     test_malformed_status_is_skipped()
     print('ok')

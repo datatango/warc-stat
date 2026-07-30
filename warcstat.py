@@ -50,21 +50,28 @@ def collect_stats(stream):
                 host = urlparse(uri).netloc # extract domain
                 if host:
                     stats['hosts'][host] += 1 # count number of times a host is seen
+            is_success = False
             if status:
                 stats['http_status_codes'][status] += 1 # count status code
 
                 # get_statuscode() returns a string, and a malformed record
                 # can put anything in the status line
                 if status.isdigit():
-                    if int(status) >= 400:
+                    code = int(status)
+                    if code >= 400:
                         stats['errors'].append({'url': uri, 'status': status})
-                    elif int(status) >= 300:
+                    elif code >= 300:
                         stats['redirects'].append({'url': uri, 'status': status})
+                    else:
+                        is_success = 200 <= code
 
-            content_type = record.http_headers.get_header('Content-Type') # "text/html", etc
-            if content_type:
-                content_type = content_type.split(';')[0].strip()
-                stats['mime_types'][content_type] += 1 # count of number of MIME type
+            # only count MIME types on 2xx: a redirect stub still carries a
+            # Content-Type but no real content, which inflates the counts
+            if is_success:
+                content_type = record.http_headers.get_header('Content-Type') # "text/html", etc
+                if content_type:
+                    content_type = content_type.split(';')[0].strip()
+                    stats['mime_types'][content_type] += 1 # count of number of MIME type
 
     # convert defaultdict objects back to Python dicts
     stats['record_types'] = dict(stats['record_types'])
@@ -81,6 +88,8 @@ def main():
     parser.add_argument('warc_file', help='Path to the WARC file') # required argument
     parser.add_argument('-o', '--output', help='Output JSON file path') # optional argument
     parser.add_argument('--log-dir', default='logs', help='Log directory path') # optional argument
+    parser.add_argument('-q', '--quiet', action='store_true',
+                        help='Omit the errors/redirects lists, keeping only their counts')
     args = parser.parse_args()
 
     # set up logging
@@ -92,6 +101,11 @@ def main():
             stats = collect_stats(stream)
     except OSError as error:
         parser.error(f"can't open '{args.warc_file}': {error.strerror}")
+
+    if args.quiet: # swap the lists for their lengths
+        stats['errors'] = len(stats['errors'])
+        stats['redirects'] = len(stats['redirects'])
+
     output = json.dumps(stats, indent=2) # json output
 
     if args.output: # if user specified output
